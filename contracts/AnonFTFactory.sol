@@ -19,7 +19,7 @@ contract AnonFTFactory is ERC721, Ownable {
 		_lastId.reset();
 	}
 
-	function mint(address to) public returns (uint256){
+	function mint(address to) public returns (uint256) {
 		_lastId.increment();
 		uint256 newId = _lastId.current();
 		_safeMint(to, newId);
@@ -29,4 +29,30 @@ contract AnonFTFactory is ERC721, Ownable {
 	function getLastID() public view returns (uint256) {
 		return _lastId.current();
 	}
+
+	function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
+		super._beforeTokenTransfer(from, to, tokenId);
+
+		invalidateCurrentProof();
+	}
+
+	function _afterTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {
+		super._afterTokenTransfer(from, to, tokenId);
+
+		generateNewProof();
+	}
+
+	function transfer(address to, uint256 tokenId) public {
+		_safeTransfer(msg.sender, to, tokenId, "");
+	}
+
+	/*
+	*  To be implemented when decided zero knowledge proof format
+	*/
+	function invalidateCurrentProof() private {}
+
+	/*
+	*  To be implemented when decided zero knowledge proof format
+	*/
+	function generateNewProof() private {}
 }
