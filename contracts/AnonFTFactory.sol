@@ -14,7 +14,7 @@ contract AnonFTFactory is ERC721, Ownable {
 	struct IdentityData {
 		uint256 n;
 		uint256 k;
-		uint256[] identifers;
+		uint256[] identifiers;
 	}
 
 	Counters.Counter private _lastId;

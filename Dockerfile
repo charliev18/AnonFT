@@ -1,20 +1,21 @@
-FROM node:14
+FROM gcc:latest as build
+WORKDIR /fsSrc
+COPY ./FiatShamir .
+RUN cd src \
+    && g++ -o prove prover/proof_actions.cpp prover/setup.cpp prover/prover.cpp utils.cpp \
+    && g++ -o verify verifier/proof_actions.cpp verifier/verifier.cpp utils.cpp
 
-# Create app directory
-WORKDIR /usr/src/app
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
-# where available (npm@5+)
-COPY package*.json ./
+FROM ubuntu:latest
 
-RUN npm install
+RUN apt-get update \
+    && apt-get install -y curl python3 python3-pip
 
-# Bundle app source
-COPY . .
-
-# RUN npx tsc index.ts
-
-EXPOSE 8080
-
-CMD [ "npm", "run", "web"]
+# FROM python:3.9-slim-buster as runtime
+WORKDIR /app
+COPY requirements.txt requirements.txt
+RUN pip3 install -r requirements.txt
+COPY app/ .
+COPY --from=build /fsSrc/src/prove .
+COPY --from=build /fsSrc/src/verify .
+CMD [ "python3", "-u", "-m" , "flask", "run", "--host=0.0.0.0", "--port=8080"]

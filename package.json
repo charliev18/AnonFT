@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "browserify app/static/index.js -o app/static/bundle.js",
     "ganache": "ganache -g 0 -p 8545",
-    "web": "node app.js",
+    "web": "node app/templates/app.js",
     "start": "npm-run-all -p ganache web"
   },
   "devDependencies": {
@@ -15,8 +16,7 @@
     "truffle": "^5.1.16-truffleLogger.0"
   },
   "dependencies": {
-    "ethjs": "^0.4.0",
-    "typescript": "^4.6.4",
+    "browserify": "^17.0.0",
     "web3": "^1.7.3"
   }
 }

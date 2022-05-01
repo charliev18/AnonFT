@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+    <meta charset="UTF-8">
+    <title>AnonFT</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+</head>
+
+<body>
+    <html>
+        <head>
+            <title>AnonFT</title>
+        </head>
+        <body>
+            <div class="container p-4">
+                <div class="row row-cols-3 g-4">
+                    <div class="col">
+                        <h3 class="text-center">Mint a new NFT</h3>
+                        <form id="mint-nft" class="row g-3">
+                            <div class="mb-3">
+                                <label for="input-user-id" class="form-label">Ethereum address</label>
+                                <input type="text" class="form-control" id="input-user-id" aria-describedby="eth-help">
+                                <div id="eth-help" class="form-text">WARNING: This will be revealed publicly!</div>
+                            </div>
+                            <div class="mb-3 col-md-4">
+                                <label for="input-n" class="form-label">N value</label>
+                                <input type="number" class="form-control" id="input-n">
+                            </div>
+                            <div class="mb-3 col-md-4">
+                                <label for="input-k" class="form-label">K value</label>
+                                <input type="number" class="form-control" id="input-k">
+                            </div>
+                            <div class="mb-3 col-md-4">
+                                <label for="input-identifiers" class="form-label">Public identifiers</label>
+                                <input type="text" class="form-control" id="input-identifiers">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    <div class="col">
+                        <h3 class="text-center">Connect an existing NFT</h3>
+                        <form id="connect-nft">
+                            <div class="mb-3">
+                                <label for="input-token-id" class="form-label">Token ID</label>
+                                <input type="number" class="form-control" id="input-token-id">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    <div class="col">
+                        <div class="card" style="width: 18rem;">
+                            <div class="card-header">
+                                <h5 class="card-title">Your NFT</h5>
+                                <h6 class="card-subtitle mb-2 text-muted" id="token-id"></h6>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text" id="token-n"></p>
+                                <p class="card-text" id="token-k"></p>
+                                <p class="card-text" id="token-identifiers"></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <h3 class="text-center">Setup proving values</h3>
+                        <form id="setup-proof" class="row g-3">
+                            <div class="mb-3 col-md-4">
+                                <label for="setup-p" class="form-label">Prime Q</label>
+                                <input type="number" class="form-control" id="setup-p">
+                            </div>
+                            <div class="mb-3 col-md-4">
+                                <label for="setup-q" class="form-label">Prime P</label>
+                                <input type="number" class="form-control" id="setup-q">
+                            </div>
+                            <div class="mb-3 col-md-4">
+                                <label for="setup-k" class="form-label">K value</label>
+                                <input type="number" class="form-control" id="setup-k">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    <div class="col">
+                        <h3 class="text-center">Prover first step</h3>
+                        <form id="prove-1" class="row g-3">
+                            <div class="mb-3">
+                                <label for="prove-1-w" class="form-label">Witnesses</label>
+                                <input type="text" class="form-control" id="prove-1-w">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                        <h3 class="text-center">Prover second step</h3>
+                        <form id="prove-2" class="row g-3">
+                            <div class="mb-3 col-md-4">
+                                <label for="prove-2-w" class="form-label">Witnesses</label>
+                                <input type="text" class="form-control" id="prove-2-w">
+                            </div>
+                            <div class="mb-3 col-md-4">
+                                <label for="prove-2-c" class="form-label">Challenge</label>
+                                <input type="text" class="form-control" id="prove-2-c">
+                            </div>
+                            <div class="mb-3 col-md-4">
+                                <label for="prove-2-r" class="form-label">R value</label>
+                                <input type="text" class="form-control" id="prove-2-r">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                    <div class="col">
+                        <h3 class="text-center">Generate verifier challenge</h3>
+                        <form id="verify-1" class="row g-3">
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                        <h3 class="text-center">Verifier second step</h3>
+                        <form id="verify-2" class="row g-3">
+                            <div class="mb-3 col-md-4">
+                                <label for="prove-2-c" class="form-label">Challenge</label>
+                                <input type="text" class="form-control" id="verify-2-c">
+                            </div>
+                            <div class="mb-3 col-md-4">
+                                <label for="prove-2-x" class="form-label">Prover X</label>
+                                <input type="text" class="form-control" id="verify-2-x">
+                            </div>
+                            <div class="mb-3 col-md-4">
+                                <label for="prove-2-y" class="form-label">Prover Y</label>
+                                <input type="text" class="form-control" id="verify-2-y">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </body>
+    </html>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ganache@7.1.0/dist/web/ganache.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
+    <script src="/bundle.js"></script>
+</body>
+
+</html>
