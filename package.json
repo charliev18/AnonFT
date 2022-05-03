@@ -16,7 +16,6 @@
     "truffle": "^5.1.16-truffleLogger.0"
   },
   "dependencies": {
-    "browserify": "^17.0.0",
-    "web3": "^1.7.3"
+    "browserify": "^17.0.0"
   }
 }

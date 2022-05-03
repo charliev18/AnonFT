@@ -14,7 +14,7 @@ contract AnonFTFactory is ERC721, Ownable {
 	struct IdentityData {
 		uint256 n;
 		uint256 k;
-		uint256[] identifiers;
+		int256[] identifiers;
 	}
 
 	Counters.Counter private _lastId;
@@ -28,7 +28,7 @@ contract AnonFTFactory is ERC721, Ownable {
 		_lastId.reset();
 	}
 
-	function mint(address to, uint256 n, uint256 k, uint256[] calldata identifiers) external returns (uint256) {
+	function mint(address to, uint256 n, uint256 k, int256[] calldata identifiers) external returns (uint256) {
 		// Generic ERC721 mint
 		_lastId.increment();
 		uint256 newId = _lastId.current();
@@ -39,7 +39,7 @@ contract AnonFTFactory is ERC721, Ownable {
 		return newId;
 	}
 
-	function transfer(address to, uint256 tokenId, uint256 n, uint256 k, uint256[] calldata identifiers) external {
+	function transfer(address to, uint256 tokenId, uint256 n, uint256 k, int256[] calldata identifiers) external {
 		removeOwnership(tokenId);
 
 		_safeTransfer(msg.sender, to, tokenId, "");
@@ -51,7 +51,7 @@ contract AnonFTFactory is ERC721, Ownable {
 		delete anonymousId[tokenId];
 	}
 
-	function updateOwnership(uint256 tokenId, uint256 n, uint256 k, uint256[] memory identifiers) private {
+	function updateOwnership(uint256 tokenId, uint256 n, uint256 k, int256[] memory identifiers) private {
 		anonymousId[tokenId] = IdentityData(n, k, identifiers);
 	}
 

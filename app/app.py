@@ -1,5 +1,5 @@
 import string
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template
 import subprocess
 from utils import *
 
@@ -40,7 +40,7 @@ def prove1():
                              "-k", str(data['k']), 
                              "-w", scrub_str_array(data['witnesses'])], 
                              capture_output=True, text=True)
-    return jsonify(parse_prove_a_out(output.returncode, output.stdout))
+    return parse_prove_a_out(output.returncode, output.stdout)
 
 
 @app.route("/prove2", methods=['POST'])
@@ -56,7 +56,7 @@ def prove2():
                              "-w", scrub_str_array(data['witnesses']), 
                              "-c", scrub_str_array(data['challenge'])],
                              capture_output=True, text=True)
-    return jsonify(parse_prove_b_out(output.returncode, output.stdout))
+    return parse_prove_b_out(output.returncode, output.stdout)
 
 
 @app.route("/verify1", methods=['POST'])
@@ -68,7 +68,7 @@ def verify1():
     output = subprocess.run(["./verify", "-c", 
                              "-k", str(data['k'])],
                              capture_output=True, text=True)
-    return jsonify(parse_verif_a_out(output.returncode, output.stdout))
+    return parse_verif_a_out(output.returncode, output.stdout)
 
 
 @app.route("/verify2", methods=['POST'])
@@ -85,7 +85,7 @@ def verify2():
                              "-p", scrub_str_array(data['identifiers']), 
                              "-b", scrub_str_array(data['challenge'])],
                              capture_output=True, text=True)
-    return jsonify(parse_verif_b_out(output.returncode, output.stdout))
+    return parse_verif_b_out(output.returncode, output.stdout)
 
 
 if __name__ == "__main__":

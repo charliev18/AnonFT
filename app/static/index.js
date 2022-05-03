@@ -1,12 +1,23 @@
 const AnonFTContractJson = require('../../build/contracts/AnonFTFactory.json');
 
-const CONTRACT_ADDR = '0x7c1E07969cf56fe6b562FFAe414Dc8412eb5cEFC';
-const CONTRACT_ACCT = '0x53eD736Ac1e0e82A95B205FeB47976d27f0ff96c';
+const CONTRACT_ADDR = '0xEa6Cbb5Ff1775f209925561976C49a4949938020';
+const CONTRACT_ACCT = '0x82aaFE26333752B9ae2DB449541C4987A7146e80';
 
 const SERVER_BASE = "http://localhost:8080/";
 
-var tokenId = -1;
-var publicParams = {n: -1, k: -1, identifiers: [-1, -1, -1]};
+const proofCached = {};
+const tokenCached = {};
+
+const varDocumentMapping = {
+    'witnesses': ['prove-1-w', 'prove-2-w'],
+    'identifiers': ['input-identifiers'],
+    'n': ['input-n'],
+    'k': ['input-k'],
+    'challenge': ['prove-2-c', 'verify-2-c'],
+    'r': ['prove-2-r'],
+    'x': ['verify-2-x'],
+    'y': ['verify-2-y']
+}
 
 function init() {
     var web3 = new Web3('ws://localhost:8545');
@@ -31,7 +42,7 @@ function init() {
 async function connectNFT(event) {
     event.preventDefault();
 
-    tokenId = document.getElementById("input-token-id").value;
+    tokenCached['tokenId'] = document.getElementById("input-token-id").value;
     getPublicParams();
 
     return false;
@@ -52,10 +63,10 @@ async function mintNFT(event) {
                                 )
     .send({
         from: CONTRACT_ACCT,
-        gas: 300000
+        gas: 400000
     })
     .then(function(receipt) {
-        tokenId = receipt['events']['Transfer']['returnValues']['tokenId'];
+        tokenCached['tokenId'] = receipt['events']['Transfer']['returnValues']['tokenId'];
 
         getPublicParams();
     });
@@ -64,40 +75,138 @@ async function mintNFT(event) {
 }
 
 async function getPublicParams() {
-    anonFTContract.methods.getOwnershipDataFor(tokenId).call()
+    anonFTContract.methods.getOwnershipDataFor(tokenCached['tokenId']).call()
     .then(function(receipt) {
-        publicParams['n'] = receipt['n'];
-        publicParams['k'] = receipt['k'];
-        publicParams['identifiers'] = receipt['identifiers'];
+        tokenCached['n'] = receipt['n'];
+        tokenCached['k'] = receipt['k'];
+        tokenCached['identifiers'] = '[' + receipt['identifiers'].join(", ") + ']';
 
         showToken();
     });
 }
 
 function showToken() {
-    document.getElementById('token-id').innerText = 'ID: ' + tokenId;
-    document.getElementById('token-n').innerText = 'N: ' + publicParams['n'];
-    document.getElementById('token-k').innerText = 'K: ' + publicParams['k'];
-    document.getElementById('token-identifiers').innerText = 'Identifiers: ' + publicParams['identifiers'];
+    document.getElementById('token-id').innerText = 'ID: ' + tokenCached['tokenId'];
+    document.getElementById('token-n').innerText = 'N: ' + tokenCached['n'];
+    document.getElementById('token-k').innerText = 'K: ' + tokenCached['k'];
+    document.getElementById('token-identifiers').innerText = 'Identifiers: ' + tokenCached['identifiers'];
+}
+
+function cacheValues(json) {
+    for (const value of Object.values(json)) {
+        Object.assign(proofCached, value);
+    }
+    console.log(proofCached);
+}
+
+function autoFillCached() {
+    for (const [key, value] of Object.entries(proofCached)) {
+        if (!varDocumentMapping[key]) continue;
+        for (const docId of varDocumentMapping[key]) {
+            document.getElementById(docId).value = value;
+        }
+    }
+}
+
+const toTitleCase = str => str.replace(/(^\w)/g, m => m.toUpperCase())
+
+/* 
+Builds the following response HTML object:
+
+<div class="card" style="width: 18rem;">
+    <div class="card-header">
+        <h5 class="card-title">Response</h5>
+    </div>
+    <div class="card-body">
+        <h6 class="card-text">Public values:</h6>
+        <p class="card-text">key1: value1</p>
+        <p class="card-text">key2: value2</p>
+        ...
+    </div>
+</div> 
+*/
+function buildResponse(obj, stage) {
+    // Build HTML object
+    var wrapper = document.createElement('div');
+    var innerHTML = '<div class="card" style="width: 18rem;">' + 
+                        '<div class="card-header">' +
+                            '<h5 class="card-title">Response</h5>' +
+                        '</div>' + 
+                        '<div class="card-body">';
+
+    for (const [outerKey, outerValue] of Object.entries(obj)) {
+        innerHTML += `<h6 class="card-text">${toTitleCase(outerKey)} values:</h6>`;
+        for (const [innerKey, innerValue] of Object.entries(outerValue)) {
+            console.log(innerValue);
+            innerHTML += `<p class="card-text">${toTitleCase(innerKey)}: ${toTitleCase(innerValue.toString())}</p>`;
+        }
+    }
+
+    innerHTML += '</div></div>'
+    wrapper.innerHTML = innerHTML;
+
+    // Insert into document
+    var location = stage + '-response';
+    document.getElementById(location).innerHTML = '';
+    document.getElementById(location).appendChild(wrapper);
+}
+
+/*  
+ * Builds alert to display client errors to user
+ */
+async function handleError(reason, stage) {
+    var wrapper = document.createElement('div');
+    wrapper.innerHTML = '<div class="alert alert-danger alert-dismissible" role="alert">' + 
+                        reason + 
+                        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+    
+    var location = stage + '-alert';
+    document.getElementById(location).innerHTML = '';
+    document.getElementById(location).appendChild(wrapper);
+}
+
+/*
+ * Communicates relevant request to server and handles response
+ */
+async function retrieveFromServer(endpoint, stage, req) {
+    fetch(SERVER_BASE + endpoint, req)
+    .then((response) => {
+        if (response.ok) {
+            return response.json();
+        }
+
+        return Promise.reject(response);
+    }).then((json) => {
+        buildResponse(json, stage);
+        cacheValues(json);
+        autoFillCached();
+    }).catch(error => {
+        console.log(error);
+        error.text().then(err => handleError(err, stage));
+    });
+
+    return 
 }
 
 async function getSetupParams(event) {
     event.preventDefault();
     console.log("In setup")
+    proofCached['k'] = document.getElementById('setup-k').value;
 
-    fetch(SERVER_BASE + 'setup', {
-        method : 'POST',
-        headers: {'Content-Type': 'application/json;charset=utf-8'},
-        body : JSON.stringify({
-            p : document.getElementById('setup-p').value,
-            q : document.getElementById('setup-q').value,
-            k : document.getElementById('setup-k').value
-        })
-    }).then(
-        response => response.json()
-    ).then(
-        html => console.log(html)
+    retrieveFromServer(
+        'setup',
+        'setup', 
+        {
+            method : 'POST',
+            headers: {'Content-Type': 'application/json;charset=utf-8'},
+            body : JSON.stringify({
+                p : document.getElementById('setup-p').value,
+                q : document.getElementById('setup-q').value,
+                k : document.getElementById('setup-k').value
+            })
+        }
     );
+
     return false;
 }
 
@@ -105,19 +214,20 @@ async function proverFirstAction(event) {
     event.preventDefault();
     console.log("In prover 1")
 
-    fetch(SERVER_BASE + 'prove1', {
-        method : 'POST',
-        headers: {'Content-Type': 'application/json;charset=utf-8'},
-        body : JSON.stringify({
-            n : publicParams['n'],
-            k : publicParams['k'],
-            witnesses : JSON.parse(document.getElementById('prove-1-w').value)
-        })
-    }).then(
-        response => response.json()
-    ).then(
-        html => console.log(html)
+    retrieveFromServer(
+        'prove1',
+        'prove-1',
+        {
+            method : 'POST',
+            headers: {'Content-Type': 'application/json;charset=utf-8'},
+            body : JSON.stringify({
+                n : tokenCached['n'],
+                k : tokenCached['k'],
+                witnesses : JSON.parse(document.getElementById('prove-1-w').value)
+            })
+        }
     );
+
     return false;
 }
 
@@ -125,21 +235,22 @@ async function proverSecondAction(event) {
     event.preventDefault();
     console.log("In prover 2")
 
-    fetch(SERVER_BASE + 'prove2', {
-        method : 'POST',
-        headers: {'Content-Type': 'application/json;charset=utf-8'},
-        body : JSON.stringify({
-            n : publicParams['n'],
-            k : publicParams['k'],
-            r : document.getElementById('prove-2-r').value,
-            challenge : JSON.parse(document.getElementById('prove-2-c').value),
-            witnesses : JSON.parse(document.getElementById('prove-2-w').value)
-        })
-    }).then(
-        response => response.json()
-    ).then(
-        html => console.log(html)
+    retrieveFromServer(
+        'prove2',
+        'prove-2',
+        {
+            method : 'POST',
+            headers: {'Content-Type': 'application/json;charset=utf-8'},
+            body : JSON.stringify({
+                n : tokenCached['n'],
+                k : tokenCached['k'],
+                r : document.getElementById('prove-2-r').value,
+                challenge : JSON.parse(document.getElementById('prove-2-c').value),
+                witnesses : JSON.parse(document.getElementById('prove-2-w').value)
+            })
+        }
     );
+
     return false;
 }
 
@@ -147,17 +258,18 @@ async function verifierFirstAction(event) {
     event.preventDefault();
     console.log("In verifier 1")
 
-    fetch(SERVER_BASE + 'verify1', {
-        method : 'POST',
-        headers: {'Content-Type': 'application/json;charset=utf-8'},
-        body : JSON.stringify({
-            k : publicParams['k']
-        })
-    }).then(
-        response => response.json()
-    ).then(
-        html => console.log(html)
+    retrieveFromServer(
+        'verify1',
+        'verify-1',
+        {
+            method : 'POST',
+            headers: {'Content-Type': 'application/json;charset=utf-8'},
+            body : JSON.stringify({
+                k : tokenCached['k']
+            })
+        }
     );
+
     return false;
 }
 
@@ -165,22 +277,23 @@ async function verifierSecondAction(event) {
     event.preventDefault();
     console.log("In verifier 2")
 
-    fetch(SERVER_BASE + 'verify2', {
-        method : 'POST',
-        headers: {'Content-Type': 'application/json;charset=utf-8'},
-        body : JSON.stringify({
-            n : publicParams['n'],
-            k : publicParams['k'],
-            identifiers : publicParams['identifiers'],
-            x : document.getElementById('verify-2-x').value,
-            y : document.getElementById('verify-2-y').value,
-            challenge : JSON.parse(document.getElementById('verify-2-c').value)
-        })
-    }).then(
-        response => response.json()
-    ).then(
-        html => console.log(html)
+    retrieveFromServer(
+        'verify2',
+        'verify-2',
+        {
+            method : 'POST',
+            headers: {'Content-Type': 'application/json;charset=utf-8'},
+            body : JSON.stringify({
+                n : tokenCached['n'],
+                k : tokenCached['k'],
+                identifiers : tokenCached['identifiers'],
+                x : document.getElementById('verify-2-x').value,
+                y : document.getElementById('verify-2-y').value,
+                challenge : JSON.parse(document.getElementById('verify-2-c').value)
+            })
+        }
     );
+
     return false;
 }
 

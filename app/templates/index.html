@@ -14,42 +14,55 @@
         </head>
         <body>
             <div class="container p-4">
-                <div class="row row-cols-3 g-4">
-                    <div class="col">
-                        <h3 class="text-center">Mint a new NFT</h3>
-                        <form id="mint-nft" class="row g-3">
-                            <div class="mb-3">
-                                <label for="input-user-id" class="form-label">Ethereum address</label>
-                                <input type="text" class="form-control" id="input-user-id" aria-describedby="eth-help">
-                                <div id="eth-help" class="form-text">WARNING: This will be revealed publicly!</div>
+                <div class="row justify-content-md-center">
+                    <div class="col-5 border p-3">
+                        <div class="d-flex align-items-start">
+                            <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                                <button class="nav-link active" id="v-pills-mint-tab" data-bs-toggle="pill" data-bs-target="#v-pills-mint" type="button" role="tab" aria-controls="v-pills-mint" aria-selected="true">Mint</button>
+                                <button class="nav-link" id="v-pills-connect-tab" data-bs-toggle="pill" data-bs-target="#v-pills-connect" type="button" role="tab" aria-controls="v-pills-connect" aria-selected="false">Connect</button>
                             </div>
-                            <div class="mb-3 col-md-4">
-                                <label for="input-n" class="form-label">N value</label>
-                                <input type="number" class="form-control" id="input-n">
+                            <!-- NFT interaction options -->
+                            <div class="tab-content" id="v-pills-tabContent">
+                                <div class="tab-pane fade show active" id="v-pills-mint" role="tabpanel" aria-labelledby="v-pills-mint-tab">
+                                    <h3 class="text-center">Mint a new NFT</h3>
+                                    <form id="mint-nft" class="row g-3">
+                                        <div class="mb-3">
+                                            <label for="input-user-id" class="form-label">Ethereum address</label>
+                                            <input type="text" class="form-control" id="input-user-id" aria-describedby="eth-help">
+                                            <div id="eth-help" class="form-text">WARNING: This will be revealed publicly!</div>
+                                        </div>
+                                        <div class="mb-3 col-md-6">
+                                            <label for="input-n" class="form-label">N value</label>
+                                            <input type="number" class="form-control" id="input-n">
+                                        </div>
+                                        <div class="mb-3 col-md-6">
+                                            <label for="input-k" class="form-label">K value</label>
+                                            <input type="number" class="form-control" id="input-k">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="input-identifiers" class="form-label">Public identifiers</label>
+                                            <input type="text" class="form-control" id="input-identifiers">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                    </form>
+                                </div>
+
+                                <div class="tab-pane fade" id="v-pills-connect" role="tabpanel" aria-labelledby="v-pills-connect-tab">
+                                    <h3 class="text-center">Connect an existing NFT</h3>
+                                    <form id="connect-nft">
+                                        <div class="mb-3">
+                                            <label for="input-token-id" class="form-label">Token ID</label>
+                                            <input type="number" class="form-control" id="input-token-id">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                    </form>
+                                </div>
                             </div>
-                            <div class="mb-3 col-md-4">
-                                <label for="input-k" class="form-label">K value</label>
-                                <input type="number" class="form-control" id="input-k">
-                            </div>
-                            <div class="mb-3 col-md-4">
-                                <label for="input-identifiers" class="form-label">Public identifiers</label>
-                                <input type="text" class="form-control" id="input-identifiers">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                        </form>
+                        </div>
                     </div>
-                    <div class="col">
-                        <h3 class="text-center">Connect an existing NFT</h3>
-                        <form id="connect-nft">
-                            <div class="mb-3">
-                                <label for="input-token-id" class="form-label">Token ID</label>
-                                <input type="number" class="form-control" id="input-token-id">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                        </form>
-                    </div>
-                    <div class="col">
-                        <div class="card" style="width: 18rem;">
+                    <div class="col-2">
+                        <!-- NFT visualisation -->
+                        <div class="card">
                             <div class="card-header">
                                 <h5 class="card-title">Your NFT</h5>
                                 <h6 class="card-subtitle mb-2 text-muted" id="token-id"></h6>
@@ -61,71 +74,121 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <h3 class="text-center">Setup proving values</h3>
-                        <form id="setup-proof" class="row g-3">
-                            <div class="mb-3 col-md-4">
-                                <label for="setup-p" class="form-label">Prime Q</label>
-                                <input type="number" class="form-control" id="setup-p">
+                </div>
+
+                <div class="container p-4">
+                    <div class="row justify-content-md-center">
+                        <div class="col-9 p-1">
+                            <div class="nav nav-tabs nav-fill" id="nav-tab" role="tablist">
+                                <button class="nav-link active" id="nav-setup-tab" data-bs-toggle="tab" data-bs-target="#nav-setup" type="button" role="tab" aria-controls="nav-setup" aria-selected="true">Setup</button>
+                                <button class="nav-link" id="nav-prove-tab" data-bs-toggle="tab" data-bs-target="#nav-prove" type="button" role="tab" aria-controls="nav-prove" aria-selected="false">Prove</button>
+                                <button class="nav-link" id="nav-verify-tab" data-bs-toggle="tab" data-bs-target="#nav-verify" type="button" role="tab" aria-controls="nav-verify" aria-selected="false">Verify</button>
                             </div>
-                            <div class="mb-3 col-md-4">
-                                <label for="setup-q" class="form-label">Prime P</label>
-                                <input type="number" class="form-control" id="setup-q">
+                            
+                            <div class="tab-content" id="nav-tabContent">
+
+                                <!-- Setup tab contents -->
+                                <div class="tab-pane fade show active" id="nav-setup" role="tabpanel" aria-labelledby="nav-setup-tab">
+                                    <div class="col">
+                                        <h3 class="text-center">Setup proving values</h3>
+                                        <div id="setup-alert"></div>
+                                        <form id="setup-proof" class="row g-3">
+                                            <div class="mb-3 col-md-4">
+                                                <label for="setup-p" class="form-label">Prime P</label>
+                                                <input type="number" class="form-control" id="setup-p">
+                                            </div>
+                                            <div class="mb-3 col-md-4">
+                                                <label for="setup-q" class="form-label">Prime Q</label>
+                                                <input type="number" class="form-control" id="setup-q">
+                                            </div>
+                                            <div class="mb-3 col-md-4">
+                                                <label for="setup-k" class="form-label">K value</label>
+                                                <input type="number" class="form-control" id="setup-k">
+                                            </div>
+                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                        </form>
+                                        <br>
+                                        <div id="setup-response"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Prover tab contents -->
+                                <div class="tab-pane fade" id="nav-prove" role="tabpanel" aria-labelledby="nav-prove-tab">
+                                    <div class="row justify-content-md-center">
+                                        <div class="col-5 p-3">
+                                            <h3 class="text-center">Prover first step</h3>
+                                            <div id="prove-1-alert"></div>
+                                            <form id="prove-1" class="row g-3">
+                                                <div class="mb-3">
+                                                    <label for="prove-1-w" class="form-label">Witnesses</label>
+                                                    <input type="text" class="form-control" id="prove-1-w">
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                            </form>
+                                            <br>
+                                            <div id="prove-1-response"></div>
+                                        </div>
+                                        <div class="col-5 p-3">
+                                            <h3 class="text-center">Prover second step</h3>
+                                            <div id="prove-2-alert"></div>
+                                            <form id="prove-2" class="row g-3">
+                                                <div class="mb-3">
+                                                    <label for="prove-2-w" class="form-label">Witnesses</label>
+                                                    <input type="text" class="form-control" id="prove-2-w">
+                                                </div>
+                                                <div class="mb-3 col-md-6">
+                                                    <label for="prove-2-c" class="form-label">Challenge</label>
+                                                    <input type="text" class="form-control" id="prove-2-c">
+                                                </div>
+                                                <div class="mb-3 col-md-6">
+                                                    <label for="prove-2-r" class="form-label">R value</label>
+                                                    <input type="text" class="form-control" id="prove-2-r">
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                            </form>
+                                            <br>
+                                            <div id="prove-2-response"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Verifier tab contents -->
+                                <div class="tab-pane fade" id="nav-verify" role="tabpanel" aria-labelledby="nav-verify-tab">
+                                    <div class="row justify-content-md-center">
+                                        <div class="col-5 p-3">
+                                            <h3 class="text-center">Generate verifier challenge</h3>
+                                            <div id="verify-1-alert"></div>
+                                            <form id="verify-1" class="row g-3">
+                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                            </form>
+                                            <br>
+                                            <div id="verify-1-response"></div>
+                                        </div>
+                                        <div class="col-5 p-3">
+                                            <h3 class="text-center">Verifier second step</h3>
+                                            <div id="verify-2-alert"></div>
+                                            <form id="verify-2" class="row g-3">
+                                                <div class="mb-3">
+                                                    <label for="verify-2-c" class="form-label">Challenge</label>
+                                                    <input type="text" class="form-control" id="verify-2-c">
+                                                </div>
+                                                <div class="mb-3 col-md-6">
+                                                    <label for="verify-2-x" class="form-label">Prover X</label>
+                                                    <input type="text" class="form-control" id="verify-2-x">
+                                                </div>
+                                                <div class="mb-3 col-md-6">
+                                                    <label for="verify-2-y" class="form-label">Prover Y</label>
+                                                    <input type="text" class="form-control" id="verify-2-y">
+                                                </div>
+                                                <button type="submit" class="btn btn-primary">Submit</button>
+                                            </form>
+                                            <br>
+                                            <div id="verify-2-response"></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mb-3 col-md-4">
-                                <label for="setup-k" class="form-label">K value</label>
-                                <input type="number" class="form-control" id="setup-k">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                        </form>
-                    </div>
-                    <div class="col">
-                        <h3 class="text-center">Prover first step</h3>
-                        <form id="prove-1" class="row g-3">
-                            <div class="mb-3">
-                                <label for="prove-1-w" class="form-label">Witnesses</label>
-                                <input type="text" class="form-control" id="prove-1-w">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                        </form>
-                        <h3 class="text-center">Prover second step</h3>
-                        <form id="prove-2" class="row g-3">
-                            <div class="mb-3 col-md-4">
-                                <label for="prove-2-w" class="form-label">Witnesses</label>
-                                <input type="text" class="form-control" id="prove-2-w">
-                            </div>
-                            <div class="mb-3 col-md-4">
-                                <label for="prove-2-c" class="form-label">Challenge</label>
-                                <input type="text" class="form-control" id="prove-2-c">
-                            </div>
-                            <div class="mb-3 col-md-4">
-                                <label for="prove-2-r" class="form-label">R value</label>
-                                <input type="text" class="form-control" id="prove-2-r">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                        </form>
-                    </div>
-                    <div class="col">
-                        <h3 class="text-center">Generate verifier challenge</h3>
-                        <form id="verify-1" class="row g-3">
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                        </form>
-                        <h3 class="text-center">Verifier second step</h3>
-                        <form id="verify-2" class="row g-3">
-                            <div class="mb-3 col-md-4">
-                                <label for="prove-2-c" class="form-label">Challenge</label>
-                                <input type="text" class="form-control" id="verify-2-c">
-                            </div>
-                            <div class="mb-3 col-md-4">
-                                <label for="prove-2-x" class="form-label">Prover X</label>
-                                <input type="text" class="form-control" id="verify-2-x">
-                            </div>
-                            <div class="mb-3 col-md-4">
-                                <label for="prove-2-y" class="form-label">Prover Y</label>
-                                <input type="text" class="form-control" id="verify-2-y">
-                            </div>
-                            <button type="submit" class="btn btn-primary">Submit</button>
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>

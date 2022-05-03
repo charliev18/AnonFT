@@ -1,5 +1,7 @@
-STATUS_OK = '200'
-STATUS_ERR = '501'
+from flask import jsonify
+
+STATUS_OK = 200
+STATUS_ERR = 400
 
 def wrap_str_array(arr):
     return '[' + arr + ']'
@@ -17,12 +19,12 @@ def parse_setup_out(code, output):
     EOL = ', \n'
 
     if (code != 0):
-        return {'status': STATUS_ERR, 'output': output}
+        return output, STATUS_ERR
 
     n = output.split(N_DELIM)[1].split(' ')[0]
     ws = wrap_str_array(output.split(ARRAY_DELIM)[1].split(EOL)[0])
     ids = wrap_str_array(output.split(ARRAY_DELIM)[2].split(EOL)[0])
-    return {'status': STATUS_OK, 'output': {'n': n, 'witnesses': ws, 'identifiers': ids}}
+    return jsonify({'public': {'n': n, 'identifiers': ids}, 'private': {'witnesses': ws}}), STATUS_OK
 
 
 def parse_prove_a_out(code, output):
@@ -30,11 +32,11 @@ def parse_prove_a_out(code, output):
     EOL = '\n'
 
     if (code != 0):
-        return {'status': STATUS_ERR, 'output': output}
+        return output, STATUS_ERR
 
     r = output.split(DELIM)[1].split(EOL)[0]
     x = output.split(DELIM)[2].split(EOL)[0]
-    return {'status': STATUS_OK, 'output': {'r': r, 'x': x}}
+    return jsonify({'public': {'x': x}, 'private': {'r': r}}), STATUS_OK
 
 
 def parse_prove_b_out(code, output):
@@ -42,20 +44,20 @@ def parse_prove_b_out(code, output):
     EOL = '\n'
 
     if (code != 0):
-        return {'status': STATUS_ERR, 'output': output}
+        return output, STATUS_ERR
 
     y = output.split(DELIM)[1].split(EOL)[0]
-    return {'status': STATUS_OK, 'output': {'y': y}}
+    return jsonify({'public': {'y': y}}), STATUS_OK
 
 
 def parse_verif_a_out(code, output):
     DELIM = ' :'
 
     if (code != 0):
-        return {'status': STATUS_ERR, 'output': output}
+        return output, STATUS_ERR
 
-    challenge = wrap_str_array(output.split(DELIM)[1][:-2])
-    return {'status': STATUS_OK, 'output': {'challenge': challenge}}
+    challenge = wrap_str_array(output.split(DELIM)[1][:-3])
+    return jsonify({'public': {'challenge': challenge}}), STATUS_OK
 
 def parse_verif_b_out(code, output):
     DELIM = ' : '
@@ -63,11 +65,11 @@ def parse_verif_b_out(code, output):
     ACCEPTING = 'accepts'
 
     if (code != 0):
-        return {'status': STATUS_ERR, 'output': output}
+        return output, STATUS_ERR
 
     x = output.split(DELIM)[1].split(EOL)[0]
     accepts = ACCEPTING in output
-    return {'status': STATUS_OK, 'output': {'x': x, 'accepts': accepts}}
+    return jsonify({'public': {'x': x, 'accepts': accepts}}), STATUS_OK
 
 
 if __name__ == '__main__':
