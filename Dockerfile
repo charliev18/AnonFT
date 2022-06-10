@@ -16,6 +16,8 @@ WORKDIR /app
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
 COPY app/ .
+COPY tornado-cli/build/ ./static/build
+COPY tornado-cli/cache/ ./static/cache
 COPY --from=build /fsSrc/src/prove .
 COPY --from=build /fsSrc/src/verify .
 CMD [ "python3", "-u", "-m" , "flask", "run", "--host=0.0.0.0", "--port=8080"]

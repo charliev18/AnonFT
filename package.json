@@ -4,18 +4,27 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "browserify app/static/index.js -o app/static/bundle.js",
+    "build": "browserify app/static/contract.js -o app/static/bundle.js; browserify app/static/tornadoIntegrations.js -o app/static/tornado.js --exclude worker_threads",
     "ganache": "ganache -g 0 -p 8545",
     "web": "node app/templates/app.js",
     "start": "npm-run-all -p ganache web"
   },
   "devDependencies": {
-    "@openzeppelin/contracts": "^4.5.0-rc.0",
+    "@chainlink/contracts": "^0.4.1",
+    "@openzeppelin/contracts": "^4.6.0",
+    "@truffle/hdwallet-provider": "^2.0.8",
     "ganache": "^7.1.0",
-    "solc": "^0.8.0",
-    "truffle": "^5.1.16-truffleLogger.0"
+    "solc": "^0.8.13",
+    "truffle": "^5.1.16-truffleLogger.0",
+    "witnet-solidity-bridge": "^0.5.4"
   },
   "dependencies": {
-    "browserify": "^17.0.0"
+    "axios": "^0.19.2",
+    "bignumber.js": "^9.0.0",
+    "browserify": "^17.0.0",
+    "circomlib": "git+https://github.com/tornadocash/circomlib.git#3b492f9801573eebcfe1b6c584afe8a3beecf2b4",
+    "fixed-merkle-tree": "^0.6.1",
+    "snarkjs": "git+https://github.com/tornadocash/snarkjs.git#869181cfaf7526fe8972073d31655493a04326d5",
+    "websnark": "git+https://github.com/tornadocash/websnark.git#4c0af6a8b65aabea3c09f377f63c44e7a58afa6d"
   }
 }

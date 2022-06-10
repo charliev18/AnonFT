@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>AnonFT</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <link rel="stylesheet" href="/custom.css">
 </head>
 
 <body>
@@ -14,42 +15,129 @@
         </head>
         <body>
             <div class="container p-4">
-                <div class="row justify-content-md-center">
-                    <div class="col-5 border p-3">
+                <div class="row justify-content-md-center gx-3">
+                    <!-- For sale NFTs -->
+                    <div class="col-2 border p-3">
+                        <h3>NFTs for Sale</h3>
+                        <div id="nfts-for-sale"></div>
+                    </div>
+
+                    <!-- NFT interaction options -->
+                    <div class="col-6 border p-3">
                         <div class="d-flex align-items-start">
                             <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                                 <button class="nav-link active" id="v-pills-mint-tab" data-bs-toggle="pill" data-bs-target="#v-pills-mint" type="button" role="tab" aria-controls="v-pills-mint" aria-selected="true">Mint</button>
+                                <button class="nav-link" id="v-pills-buy-tab" data-bs-toggle="pill" data-bs-target="#v-pills-buy" type="button" role="tab" aria-controls="v-pills-buy" aria-selected="true">Buy</button>
+                                <button class="nav-link" id="v-pills-sell-tab" data-bs-toggle="pill" data-bs-target="#v-pills-sell" type="button" role="tab" aria-controls="v-pills-sell" aria-selected="true">Sell</button>
                                 <button class="nav-link" id="v-pills-connect-tab" data-bs-toggle="pill" data-bs-target="#v-pills-connect" type="button" role="tab" aria-controls="v-pills-connect" aria-selected="false">Connect</button>
                             </div>
-                            <!-- NFT interaction options -->
+                            
+
+                            <!-- MINT -->
                             <div class="tab-content" id="v-pills-tabContent">
                                 <div class="tab-pane fade show active" id="v-pills-mint" role="tabpanel" aria-labelledby="v-pills-mint-tab">
                                     <h3 class="text-center">Mint a new NFT</h3>
                                     <form id="mint-nft" class="row g-3">
                                         <div class="mb-3">
-                                            <label for="input-user-id" class="form-label">Ethereum address</label>
-                                            <input type="text" class="form-control" id="input-user-id" aria-describedby="eth-help">
-                                            <div id="eth-help" class="form-text">WARNING: This will be revealed publicly!</div>
-                                        </div>
-                                        <div class="mb-3 col-md-6">
-                                            <label for="input-n" class="form-label">N value</label>
-                                            <input type="number" class="form-control" id="input-n">
-                                        </div>
-                                        <div class="mb-3 col-md-6">
-                                            <label for="input-k" class="form-label">K value</label>
-                                            <input type="number" class="form-control" id="input-k">
+                                            <label for="input-tornado-note" class="form-label">Tornado Note</label>
+                                            <input type="text" class="form-control" id="input-tornado-note">
                                         </div>
                                         <div class="mb-3">
-                                            <label for="input-identifiers" class="form-label">Public identifiers</label>
-                                            <input type="text" class="form-control" id="input-identifiers">
+                                            <label for="input-file" class="form-label">Embedded Image</label>
+                                            <input class="form-control" type="file" id="input-file">
+                                          </div>
+                                        <div class="container p-3 border border-secondary rounded">
+                                            <div class="h5 pb-2 mb-4 text-dark border-bottom border-secondary">Public Proof Values:</div>
+                                            <div class="d-flex justify-content-center">
+                                                <button id="mint-default" type="button" class="text-center btn btn-dark" data-bs-toggle="modal" data-bs-target="#witness-modal">Use default parameters</button>
+                                            </div>
+                                            <div class="text-center fs-5 fw-light p-3">OR</div>
+                                            <div class="row g-3">
+                                                <div class="mb-3 col-md-6">
+                                                    <label for="input-n" class="form-label">N value</label>
+                                                    <input type="number" class="form-control" id="input-n">
+                                                </div>
+                                                <div class="mb-3 col-md-6">
+                                                    <label for="input-k" class="form-label">K value</label>
+                                                    <input type="number" class="form-control" id="input-k">
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="input-identifiers" class="form-label">Identifiers</label>
+                                                <input type="text" class="form-control" id="input-identifiers">
+                                            </div>
                                         </div>
                                         <button type="submit" class="btn btn-primary">Submit</button>
                                     </form>
                                 </div>
 
+                                <!-- Buy an existing NFT -->
+                                <div class="tab-pane fade" id="v-pills-buy" role="tabpanel" aria-labelledby="v-pills-buy-tab">
+                                    <h3 class="text-center">Buy an existing NFT</h3>
+                                    <form id="buy-nft" class="row g-3">
+                                        <div class="mb-3 col-md-9">
+                                            <label for="buy-tornado-note" class="form-label">Tornado Note</label>
+                                            <input type="text" class="form-control" id="buy-tornado-note">
+                                        </div>
+                                        <div class="mb-3 col-md-3">
+                                            <label for="buy-token-id" class="form-label">Token ID</label>
+                                            <input type="number" class="form-control" id="buy-token-id">
+                                        </div>
+                                        <div class="container p-3 border border-secondary rounded">
+                                            <div class="h5 pb-2 mb-4 text-dark border-bottom border-secondary">Public Proof Values:</div>
+                                            <div class="d-flex justify-content-center">
+                                                <button id="buy-default" type="button" class="text-center btn btn-dark" data-bs-toggle="modal" data-bs-target="#witness-modal">Use default parameters</button>
+                                            </div>
+                                            <div class="text-center fs-5 fw-light p-3">OR</div>
+                                            <div class="row g-3">
+                                                <div class="mb-3 col-md-6">
+                                                    <label for="buy-n" class="form-label">N value</label>
+                                                    <input type="number" class="form-control" id="buy-n">
+                                                </div>
+                                                <div class="mb-3 col-md-6">
+                                                    <label for="buy-k" class="form-label">K value</label>
+                                                    <input type="number" class="form-control" id="buy-k">
+                                                </div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="buy-identifiers" class="form-label">Identifiers</label>
+                                                <input type="text" class="form-control" id="buy-identifiers">
+                                            </div>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                    </form>
+                                </div>
+
+                                <!-- List an NFT for sale -->
+                                <div class="tab-pane fade" id="v-pills-sell" role="tabpanel" aria-labelledby="v-pills-sell-tab">
+                                    <h3 class="text-center">Trade an NFT you own</h3>
+                                    <form id="sell-nft" class="row g-3">
+                                        <div class="mb-3">
+                                            <label for="sell-tornado-note" class="form-label">Tornado Note</label>
+                                            <input type="text" class="form-control" id="sell-tornado-note">
+                                            <!-- <div id="eth-help" class="form-text">WARNING: This will be revealed publicly!</div> -->
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="sell-eth-address" class="form-label">Ethereum Address to receive payment</label>
+                                            <input type="text" class="form-control" id="sell-eth-address">
+                                            <div id="eth-help" class="form-text">WARNING: This will be revealed publicly!</div>
+                                        </div>
+                                        <div class="mb-3 col-md-4">
+                                            <label for="sell-token-id" class="form-label">Token ID</label>
+                                            <input type="number" class="form-control" id="sell-token-id">
+                                        </div>
+                                        <div class="mb-3 col-md-8">
+                                            <label for="sell-witnesses" class="form-label">Witnesses</label>
+                                            <input type="text" class="form-control" id="sell-witnesses">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Submit</button>
+                                    </form>
+                                </div>
+
+                                <!-- Connect existing for proof -->
                                 <div class="tab-pane fade" id="v-pills-connect" role="tabpanel" aria-labelledby="v-pills-connect-tab">
-                                    <h3 class="text-center">Connect an existing NFT</h3>
-                                    <form id="connect-nft">
+                                    <h3 class="text-center">Connect to an existing NFT</h3>
+                                    <form id="connect-nft" class="row g-3">
                                         <div class="mb-3">
                                             <label for="input-token-id" class="form-label">Token ID</label>
                                             <input type="number" class="form-control" id="input-token-id">
@@ -60,18 +148,30 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-2">
+                    <div class="col-3 d-none" id="nft-vis">
                         <!-- NFT visualisation -->
                         <div class="card">
                             <div class="card-header">
-                                <h5 class="card-title">Your NFT</h5>
+                                <h5 class="card-title">Anonymous NFT</h5>
                                 <h6 class="card-subtitle mb-2 text-muted" id="token-id"></h6>
                             </div>
                             <div class="card-body">
-                                <p class="card-text" id="token-n"></p>
-                                <p class="card-text" id="token-k"></p>
-                                <p class="card-text" id="token-identifiers"></p>
+                                <div class="border border-secondary p-2">
+                                    <h5 class="card-title border-bottom border-secondary">Public Proof Values:</h5>
+                                    <div class="row">
+                                        <div class="col-6 border-end">
+                                            <p class="card-text" id="token-n"></p>
+                                        </div>
+                                        <div class="col-6">
+                                            <p class="card-text" id="token-k"></p>
+                                        </div>
+                                        <div class="col border-top">
+                                            <p class="card-text" id="token-identifiers"></p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
+                            <img class="card-img-bottom" id="token-img">
                         </div>
                     </div>
                 </div>
@@ -105,7 +205,7 @@
                                                 <label for="setup-k" class="form-label">K value</label>
                                                 <input type="number" class="form-control" id="setup-k">
                                             </div>
-                                            <button type="submit" class="btn btn-primary">Submit</button>
+                                            <button type="submit" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#witness-modal">Submit</button>
                                         </form>
                                         <br>
                                         <div id="setup-response"></div>
@@ -192,6 +292,36 @@
                     </div>
                 </div>
             </div>
+
+            <div class="modal fade" id="status-update" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="status-update" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <div id="modal-body"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="witness-modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLabel">Generated Witnesses</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>The following <emph>private</emph> witnesses correspond to the public identifiers for your anonymous NFT.</p>
+                            <p>Witnesses act like a password to claim ownership of your NFT, so make sure to save them locally somewhere</p>
+                            <div class="h5">Witnesses:</div>
+                            <p id="modal-witnesses"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+              </div>
         </body>
     </html>
 
@@ -199,6 +329,9 @@
     <script src="https://cdn.jsdelivr.net/npm/ganache@7.1.0/dist/web/ganache.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/web3@1.7.3/dist/web3.min.js"></script>
     <script src="/bundle.js"></script>
+    <script src="/proof.js"></script>
+    <script src="/index.js"></script>
+    <script src="/tornado.js"></script>
 </body>
 
 </html>

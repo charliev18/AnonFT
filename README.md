@@ -17,4 +17,13 @@ Running the webapp:
 
 go to: http://localhost:8080/
 
+Running whisper:
+
+    cd whisper/
+    docker-compose up -d
+
+Stopping whisper:
+
+    docker-compose down
+
 Built using Truffle, and OpenZeppelin

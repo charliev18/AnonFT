@@ -1,5 +1,7 @@
 import string
-from flask import Flask, request, render_template
+import os
+import json
+from flask import Flask, request, render_template, send_from_directory
 import subprocess
 from utils import *
 
@@ -9,6 +11,14 @@ app = Flask(__name__,
             static_folder='static',
             template_folder='templates')
 
+
+@app.route("/verifierAuth")
+def verifierAuth():
+    return render_template('verifier.html')
+
+@app.route("/proverAuth")
+def proverAuth():
+    return render_template('prover.html')
 
 @app.route("/")
 def hello_world():
@@ -86,6 +96,20 @@ def verify2():
                              "-b", scrub_str_array(data['challenge'])],
                              capture_output=True, text=True)
     return parse_verif_b_out(output.returncode, output.stdout)
+    
+
+@app.route("/tornadoCache", methods=['POST'])
+def tornadoCache():
+    print("RECEIVED CACHE UPDATE REQUEST")
+    data = request.json
+
+    with open("./static/" + data['fname'], "r+") as f:
+        cached = json.load(f)
+        cached.extend(data['to_update'])
+        f.seek(0)
+        f.truncate()
+        json.dump(cached, f)
+    return json.dumps({'success':True}), 200, {'ContentType':'application/json'}
 
 
 if __name__ == "__main__":
