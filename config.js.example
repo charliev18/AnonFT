@@ -1,0 +1,13 @@
+// Rename this file to config.js and fill in relevant values
+
+module.exports = {
+    anonFTAddr: "Anonymous NFT marketplace contract to fill in after deploying contracts as per README",
+    accountAddr: "Your Ethereum account address",
+    provider: "Web3 provider websocket address, e.g. Infura",
+
+    // Following values only required for users running a relayer server
+    PRIVATE_KEY: "Your Ethereum account private key",
+    goerliProxyAddr: "Goerli Proxy contract address (from tornado-cli Github)",
+    ethProxyAddr: "Ethereum Proxy contract address (from tornado-cli Github)",
+    gasLimit: 3000000
+}

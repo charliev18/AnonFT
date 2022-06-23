@@ -11,7 +11,6 @@ FROM ubuntu:latest
 RUN apt-get update \
     && apt-get install -y curl python3 python3-pip
 
-# FROM python:3.9-slim-buster as runtime
 WORKDIR /app
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt

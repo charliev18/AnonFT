@@ -11,7 +11,7 @@ contract AnonFTVerifier {
     event Log(uint256);
     event IntLog(int256);
 
-    /*
+    /** 
      * Returns the number of verifications required to reach a given security level for a given k
      * @param securityParam  Desired level of security (t*k)
      * @param k              Public identifier k
@@ -20,7 +20,7 @@ contract AnonFTVerifier {
         return SafeMath.div(securityParam + k - 1, k);
     }
 
-    /*
+    /** 
      * Returns a pseudo-random 256-bit string
      */
     function generateRandomBools() external view returns (uint256) {
@@ -29,7 +29,7 @@ contract AnonFTVerifier {
         return block.timestamp;
     }
 
-    /*
+    /** 
      * Returns val % modulo for signed integers
      */
     function signedMod(int256 val, uint256 modulo) public pure returns (uint256) {
@@ -40,7 +40,7 @@ contract AnonFTVerifier {
         }
     }
 
-    /*
+    /** 
      * Verifies the input satisfies the previously generated challenge
      * @param x             value commited by prover before receiving challenge
      * @param y             value calculated by prover off-chain

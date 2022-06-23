@@ -1,3 +1,12 @@
+
+/**
+ * All relevant functions to interact with Tornado Cash for this project
+ *                 !!!!!!!!!!!!!!!!DISCLAIMER!!!!!!!!!!!!!!!!
+ * This file is a modified version of cli.js from https://github.com/tornadocash/tornado-cli
+ * Only functions below the block comment clearly marked below are original content developed for
+ * this codebase
+ */
+
 const axios = require('axios');
 const snarkjs = require('snarkjs');
 const buildGroth16 = require('websnark/src/groth16');
@@ -84,10 +93,10 @@ function getCurrentNetworkSymbol() {
     return 'ETH';
 }
 
-/* Compute pedersen hash */
+/** Compute pedersen hash */
 const pedersenHash = (data) => circomlib.babyJub.unpackPoint(circomlib.pedersenHash.hash(data))[0];
 
-/* Display ETH account balance */
+/** Display ETH account balance */
 async function printETHBalance({ address, name }) {
     const checkBalance = new BigNumber(await web3.eth.getBalance(address)).div(BigNumber(10).pow(18));
     console.log(`${name} balance is`, rmDecimalBN(checkBalance), `${netSymbol}`);
@@ -98,7 +107,7 @@ function rmDecimalBN(bigNum, decimals = 6) {
     return new BigNumber(bigNum).times(BigNumber(10).pow(decimals)).integerValue(BigNumber.ROUND_DOWN).div(BigNumber(10).pow(decimals)).toNumber();
 }
 
-/* BigNumber to hex string of specified length */
+/** BigNumber to hex string of specified length */
 function toHex(number, length = 32) {
     const str = number instanceof Buffer ? number.toString('hex') : bigInt(number).toString(16);
     return '0x' + str.padStart(length * 2, '0');
@@ -108,7 +117,7 @@ function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
-/* Use MultiCall Contract */
+/** Use MultiCall Contract */
 async function useMultiCall(queryArray) {
     const multiCallABI = await (await fetch('/build/contracts/Multicall.abi.json')).json();
     const multiCallContract = new web3.eth.Contract(multiCallABI, multiCall);
@@ -116,7 +125,7 @@ async function useMultiCall(queryArray) {
     return returnData;
 }
 
-/*
+/**
  * Create deposit object from secret and nullifier
  */
 function createDeposit({ nullifier, secret }) {
@@ -129,7 +138,7 @@ function createDeposit({ nullifier, secret }) {
     return deposit;
 }
 
-/*
+/**
  * Parses Tornado.cash note
  * @param noteString the note
  */
@@ -563,6 +572,19 @@ async function withdrawProof(noteString, relayerAddr) {
     // await printETHBalance({ address: recip, name: 'recipient' });
 }
 
+/*******************************************************************************
+ *      Functions below this line are original content of this work            *
+ *******************************************************************************/
+
+/**
+ * Sends HTTP request to relayer for commitment phase of operation
+ * @param    relayerURL: server address exposed by relayer
+ * @param    n: n value to embed in NFT
+ * @param    k: k value to embed in NFT
+ * @param    identifiers: identifiers to embed in NFT
+ * @param    commitment: commitment key to coordinate multiple requests
+ * @returns  response object
+ */
 async function commitToProof(relayerURL, n, k, identifiers, commitment) {
     const resp = await axios.post(relayerURL + 'commit', {
         publicIds: {
@@ -576,6 +598,14 @@ async function commitToProof(relayerURL, n, k, identifiers, commitment) {
     return resp.data;
 }
 
+
+/**
+ * Sends HTTP request to relayer for payment phase of operation
+ * @param    relayerURL: server address exposed by relayer
+ * @param    proof: zk-SNARK generated for Tornado Cash payment
+ * @param    args: args generate for Tornado Cash payment
+ * @returns  response object
+ */
 async function anonymousPayment(relayerURL, proof, args) {
     const resp = await axios.post(relayerURL + 'pay', {
         contract: tornadoInstance,
@@ -586,6 +616,14 @@ async function anonymousPayment(relayerURL, proof, args) {
     return resp.data;
 }
 
+
+/**
+ * Sends HTTP request to relayer for claim phase of operation
+ * @param    relayerURL: server address exposed by relayer
+ * @param    commitment: commitment key to coordinate multiple requests
+ * @param    tokenId: tokenId of request (only required for buy operation) 
+ * @returns  response object
+ */
 async function confirmPayment(relayerURL, commitment, tokenId=0) {
     const resp = await axios.post(relayerURL + 'confirm', {
         commitment: commitment,
@@ -595,6 +633,15 @@ async function confirmPayment(relayerURL, commitment, tokenId=0) {
     return resp.data;
 }
 
+
+/**
+ * Sends HTTP request to relayer for proof initiation phase of sell operation
+ * @param    relayerURL: server address exposed by relayer
+ * @param    commitment: commitment key to coordinate multiple requests
+ * @param    tokenId: tokenId of request
+ * @param    address: Ethereum address to pay out to after successful sale
+ * @returns  response object
+ */
 async function initOwnershipProof(relayerURL, commitment, tokenId, address) {
     const resp = await axios.post(relayerURL + 'initProof', {
         commitment: commitment,
@@ -605,6 +652,14 @@ async function initOwnershipProof(relayerURL, commitment, tokenId, address) {
     return resp.data;
 }
 
+
+/**
+ * Sends HTTP request to relayer for proof step 1 of sell operation
+ * @param    relayerURL: server address exposed by relayer
+ * @param    commitment: commitment key to coordinate multiple requests
+ * @param    x: commitment value for proof
+ * @returns  response object
+ */
 async function proveOwnershipCommit(relayerURL, commitment, x) {
     const resp = await axios.post(relayerURL + 'proveCommit', {
         commitment: commitment,
@@ -614,6 +669,14 @@ async function proveOwnershipCommit(relayerURL, commitment, x) {
     return resp.data;
 }
 
+
+/**
+ * Sends HTTP request to relayer for proof step 2 of sell operation
+ * @param    relayerURL: server address exposed by relayer
+ * @param    commitment: commitment key to coordinate multiple requests
+ * @param    y: confirmation value for proof
+ * @returns  response object
+ */
 async function proveOwnershipVerify(relayerURL, commitment, y) {
     const resp = await axios.post(relayerURL + 'proveVerify', {
         commitment: commitment,

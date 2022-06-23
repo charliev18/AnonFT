@@ -1,22 +1,14 @@
 
+/**
+ * Main js file providing interactive components for index.html
+ */
+
 let relayerURL = 'http://localhost:3000/'
 let relayerAddr = '0x8135eCAc30E84cDEe2Ee4a8e35A6c6B2Be0Af7b5';
 
 const nftMetaData = {};
-//     {
-//         'tokenId': 0,
-//         'image': "https://upload.wikimedia.org/wikipedia/commons/7/73/Skeleton-Key-Silhouette.svg"
-//     },
-//     {
-//         'tokenId': 0,
-//         'image': "https://creazilla-store.fra1.digitaloceanspaces.com/silhouettes/68643/key-silhouette-000000-md.png"
-//     },
-//     {
-//         'tokenId': 0,
-//         'image': "https://illustoon.com/photo/5953.png"
-//     }
-// ]
 
+// Maps proof values to all matching component IDs from index.html
 const varDocumentMapping = {
     'witnesses': ['modal-witnesses', 'sell-witnesses', 'prove-1-w', 'prove-2-w'],
     'identifiers': ['input-identifiers', 'buy-identifiers'],
@@ -28,6 +20,7 @@ const varDocumentMapping = {
     'y': ['verify-2-y']
 }
 
+// Status update message and ID labels for every step of an anonymous transaction
 const statusHelp = {
     'snark': {
         'label': 'Compute',
@@ -51,6 +44,13 @@ const statusHelp = {
     }
 }
 
+// Simple util to capitalise first letter of every word in a string
+const toTitleCase = str => str.replace(/(^\w)/g, m => m.toUpperCase())
+
+
+/***
+ * Maps all event listeners to handler functions
+ */
 function init() {
     document.getElementById("mint-nft").addEventListener('submit', mintNFT);
     document.getElementById("buy-nft").addEventListener('submit', buyNFT);
@@ -67,10 +67,18 @@ function init() {
     buildForSaleList();
 }
 
-function truncateProof(stark) {
-    return stark.slice(0, 64);
+
+/**
+ * Returns the first 64 bytes of a string, intended for committing payment zk-snark to contract
+ */
+function truncateProof(snark) {
+    return snark.slice(0, 64);
 }
 
+
+/**
+ * Updates the connected NFT with the provided ID
+ */
 async function connectNFT(event) {
     event.preventDefault();
 
@@ -81,15 +89,21 @@ async function connectNFT(event) {
     return false;
 }
 
+
+/**
+ * Executes a mint request with values taken from frontend form
+ */
 async function mintNFT(event) {
     event.preventDefault();
 
+    // Builds status update
     buildStatusModal(["snark", "commit", "payment", "claim"]);
 
     previousStatus = "";
     currentStatus = "snark";
 
     try {
+        // Step 1: Generates zk-SNARK for Tornado Cash payment
         updateStatus(true, previousStatus, currentStatus);
 
         let payment = document.getElementById("input-tornado-note").value;
@@ -97,16 +111,25 @@ async function mintNFT(event) {
             var { proof, args } = await withdrawProof(payment, relayerAddr);
         }
 
+        // Step 2: Commits user provided values through relayer to the blockchain
         previousStatus = currentStatus;
         currentStatus = "commit";
         updateStatus(true, previousStatus, currentStatus);
 
-        const commitment = Math.floor(Math.random() * 100);
-        let tx = await commitToProof(relayerURL, document.getElementById("input-n").value, document.getElementById("input-k").value, JSON.parse(document.getElementById("input-identifiers").value), commitment);
+        const commitment = Math.floor(Math.random() * 1000);
+        let tx = await commitToProof(relayerURL, 
+                                     document.getElementById("input-n").value, 
+                                     document.getElementById("input-k").value, 
+                                     JSON.parse(document.getElementById("input-identifiers").value), 
+                                     commitment);
         console.log(tx);
-        let commitOK = await checkCommitment(commitment, document.getElementById("input-n").value, document.getElementById("input-k").value, JSON.parse(document.getElementById("input-identifiers").value));
+        let commitOK = await checkCommitment(commitment, 
+                                             document.getElementById("input-n").value, 
+                                             document.getElementById("input-k").value, 
+                                             JSON.parse(document.getElementById("input-identifiers").value));
 
         if (commitOK) {
+            // Step 3: If commitment correct, makes payment to Tornado Cash 
             previousStatus = currentStatus;
             currentStatus = "payment";
             updateStatus(true, previousStatus, currentStatus);
@@ -116,35 +139,41 @@ async function mintNFT(event) {
                 console.log(receipt);
             }
 
+            // Step 4: Claiming commitment after payment succeeds
             previousStatus = currentStatus;
             currentStatus = "claim";
             updateStatus(true, previousStatus, currentStatus);
             const confirmation = await confirmPayment(relayerURL, commitment);
             
+            // Cleaning up status components and displaying newly minted token
             previousStatus = currentStatus;
             updateStatus(true, previousStatus, "");
-            console.log(confirmation);
             tokenCached['tokenId'] = parseInt(confirmation['logs'][1]['data'], 16);
-            console.log(tokenCached['tokenId']);
             let url = URL.createObjectURL(document.getElementById("input-file").files[0]);
-            console.log(url);
             nftMetaData[tokenCached['tokenId']] = url;
             
             await getPublicParams();
             showToken();
         } else {
+            // FAIL: Relayer commitment is not as expected, either failed or relayer altered values
             updateStatus(false, previousStatus, currentStatus);
             console.log("Relayer commitment does not match generated identifiers");
         }
     } catch {
+        // FAIL: updates status modal
         updateStatus(false, previousStatus, currentStatus);
     } finally {
+        // Ensure status modal always closes
         closeStatusModal('status-update');
     }
 
     return false;
 }
 
+
+/**
+ * Executes a sell request with values taken from frontend form
+ */
 async function sellNFT(event) {
     event.preventDefault();
 
@@ -153,6 +182,7 @@ async function sellNFT(event) {
     previousStatus = "";
     currentStatus = "snark";
     try {
+        // Step 1: Generates zk-SNARK for Tornado Cash payment
         updateStatus(true, previousStatus, currentStatus);
 
         let payment = document.getElementById("sell-tornado-note").value;
@@ -160,8 +190,9 @@ async function sellNFT(event) {
             var { proof, args } = await withdrawProof(payment, relayerAddr);
         }
 
-        const commitment = Math.floor(Math.random() * 100);
+        const commitment = Math.floor(Math.random() * 1000);
 
+        // Step 2: Commits user provided values through relayer to the blockchain
         previousStatus = currentStatus;
         currentStatus = "commit";
         updateStatus(true, previousStatus, currentStatus);
@@ -175,6 +206,7 @@ async function sellNFT(event) {
         var commitOK = await checkSaleCommitment(commitment, tokenCached['tokenId'], document.getElementById("sell-eth-address").value);
 
         if (commitOK) {
+            // Step 3: If commitment correct, makes payment to Tornado Cash 
             previousStatus = currentStatus;
             currentStatus = "payment";
             updateStatus(true, previousStatus, currentStatus);
@@ -184,6 +216,7 @@ async function sellNFT(event) {
                 console.log(receipt);
             }
             
+            // Step 4: Initiate and complete proof of ownership on-chain
             previousStatus = currentStatus;
             currentStatus = "prove";
             updateStatus(true, previousStatus, currentStatus);
@@ -224,6 +257,7 @@ async function sellNFT(event) {
                 response.text().then(err => console.log(err));
             }
     
+            // Step 5: Claiming commitment after payment succeeds
             previousStatus = currentStatus;
             currentStatus = "claim";
             updateStatus(true, previousStatus, currentStatus);
@@ -233,12 +267,15 @@ async function sellNFT(event) {
 
             updateStatus(true, previousStatus, "");
         } else {
+            // FAIL: Relayer commitment is not as expected, either failed or relayer altered values
             updateStatus(false, previousStatus, currentStatus);
         }
 
     } catch {
+        // FAIL: updates status modal
         updateStatus(false, previousStatus, currentStatus);
     } finally {
+        // Ensure status modal always closes and updates 'for sale' list as it may have changed
         buildForSaleList();
         closeStatusModal('status-update');
     }
@@ -246,6 +283,10 @@ async function sellNFT(event) {
     return false;
 }
 
+
+/**
+ * Executes a buy request with values taken from frontend form
+ */
 async function buyNFT(event) {
     event.preventDefault();
 
@@ -254,6 +295,7 @@ async function buyNFT(event) {
     previousStatus = "";
     currentStatus = "snark";
     try {
+        // Step 1: Generates zk-SNARK for Tornado Cash payment
         updateStatus(true, previousStatus, currentStatus);
 
         let payment = document.getElementById("buy-tornado-note").value;
@@ -261,15 +303,24 @@ async function buyNFT(event) {
             var { proof, args } = await withdrawProof(payment, relayerAddr);
         }
         
+        // Step 2: Commits user provided values through relayer to the blockchain
         previousStatus = currentStatus;
         currentStatus = "commit";
         updateStatus(true, previousStatus, currentStatus);
         
-        const commitment = Math.floor(Math.random() * 100);
-        let tx = await commitToProof(relayerURL, document.getElementById("buy-n").value, document.getElementById("buy-k").value, JSON.parse(document.getElementById("buy-identifiers").value), commitment);
+        const commitment = Math.floor(Math.random() * 1000);
+        let tx = await commitToProof(relayerURL, 
+                                     document.getElementById("buy-n").value, 
+                                     document.getElementById("buy-k").value,
+                                     JSON.parse(document.getElementById("buy-identifiers").value), 
+                                     commitment);
         console.log(tx);
-        let bool = await checkCommitment(commitment, document.getElementById("buy-n").value, document.getElementById("buy-k").value, JSON.parse(document.getElementById("buy-identifiers").value));
-        if (bool) {
+        let commitOK = await checkCommitment(commitment, 
+                                             document.getElementById("buy-n").value, 
+                                             document.getElementById("buy-k").value, 
+                                             JSON.parse(document.getElementById("buy-identifiers").value));
+        if (commitOK) {
+            // Step 3: If commitment correct, makes payment to Tornado Cash 
             previousStatus = currentStatus;
             currentStatus = "payment";
             updateStatus(true, previousStatus, currentStatus);
@@ -279,6 +330,7 @@ async function buyNFT(event) {
                 console.log(receipt);
             }
 
+            // Step 4: Claiming commitment after payment succeeds
             previousStatus = currentStatus;
             currentStatus = "claim";
             updateStatus(true, previousStatus, currentStatus);
@@ -286,6 +338,7 @@ async function buyNFT(event) {
             const confirmation = await confirmPayment(relayerURL, commitment, document.getElementById("buy-token-id").value);
             console.log(confirmation);
 
+            // Cleaning up status components and displaying newly minted token
             previousStatus = currentStatus;
             updateStatus(true, previousStatus, "");
             console.log(confirmation);
@@ -294,38 +347,27 @@ async function buyNFT(event) {
             await getPublicParams();
             showToken();
         } else {
+            // FAIL: Relayer commitment is not as expected, either failed or relayer altered values
             updateStatus(false, previousStatus, currentStatus);
             console.log("Relayer commitment does not match generated identifiers");
         }
     } catch {
+        // FAIL: updates status modal
         updateStatus(false, previousStatus, currentStatus);
     } finally {
+        // Ensure status modal always closes and updates 'for sale' list as it may have changed
         buildForSaleList();
         closeStatusModal('status-update');
     }
-
     
     return false;
 }
 
+
+/**
+ * Displays the cached token values to the user, intended to be called after getPublicParameters()
+ */
 function showToken() {
-    // let imgSrc;
-    // if ()
-    // for (const metadata of nftMetaData) {
-    //     if (metadata['tokenId'] == tokenCached['tokenId']) {
-    //         imgSrc = metadata['image'];
-
-    //         break;
-    //     } else if (metadata['tokenId'] == 0) {
-    //         metadata['tokenId'] = tokenCached['tokenId'];
-    //         imgSrc = metadata['image'];
-
-    //         break;
-    //     }
-    // }
-
-    console.log(nftMetaData[tokenCached['tokenId']]);
-
     document.getElementById('token-img').src = nftMetaData[tokenCached['tokenId']];
     document.getElementById('token-id').innerText = 'ID: ' + tokenCached['tokenId'];
     document.getElementById('token-n').innerText = 'N: ' + tokenCached['n'];
@@ -337,6 +379,10 @@ function showToken() {
     }
 }
 
+
+/**
+ * Automatically fills form values for all components that use the same proof values for ease of use
+ */
 function autoFillCached() {
     for (const [key, value] of Object.entries(proofCached)) {
         if (!varDocumentMapping[key]) continue;
@@ -351,9 +397,7 @@ function autoFillCached() {
     }
 }
 
-const toTitleCase = str => str.replace(/(^\w)/g, m => m.toUpperCase())
-
-/* 
+/** 
 Builds the following response HTML object:
 
 <div class="card">
@@ -394,7 +438,8 @@ function buildResponse(obj, stage) {
     document.getElementById(location).appendChild(wrapper);
 }
 
-/*  
+
+/**  
  * Builds alert to display client errors to user
  */
 async function handleError(reason, stage) {
@@ -408,7 +453,8 @@ async function handleError(reason, stage) {
     document.getElementById(location).appendChild(wrapper);
 }
 
-/*
+
+/**
  * Communicates relevant request to server and handles response
  */
 function handleResponse(response, stage) {
@@ -424,6 +470,10 @@ function handleResponse(response, stage) {
     }
 }
 
+
+/**
+ * Builds the 'for sale' list component displaying all NFTs currently for sale
+ */
 async function buildForSaleList() {
     const forSale = await getAllForSale();
 
@@ -440,15 +490,19 @@ async function buildForSaleList() {
     document.getElementById('nfts-for-sale').appendChild(wrapper);
 }
 
+
+/**
+ * Calls the setup proof function with default parameters for ease of use
+ */
 async function defaultSetup(event) {
     event.preventDefault();
     console.log("In setup")
-    proofCached['k'] = 8;
+    proofCached['k'] = 12;
 
     var resp = await setup(
         '151',
         '211',
-        '8'
+        '12'
     );
 
     handleResponse(resp, 'setup');
@@ -456,6 +510,10 @@ async function defaultSetup(event) {
     return false;
 }
 
+
+/**
+ * Calls the setup proof function with user provided parameters
+ */
 async function getSetupParams(event) {
     event.preventDefault();
     console.log("In setup")
@@ -472,6 +530,10 @@ async function getSetupParams(event) {
     return false;
 }
 
+
+/**
+ * Calls the prover first action function with user provided parameters
+ */
 async function proverFirstAction(event) {
     event.preventDefault();
     console.log("In prover 1")
@@ -487,6 +549,10 @@ async function proverFirstAction(event) {
     return false;
 }
 
+
+/**
+ * Calls the prover second action function with user provided parameters
+ */
 async function proverSecondAction(event) {
     event.preventDefault();
     console.log("In prover 2")
@@ -504,6 +570,10 @@ async function proverSecondAction(event) {
     return false;
 }
 
+
+/**
+ * Calls the verifier first action function with user provided parameters
+ */
 async function verifierFirstAction(event) {
     event.preventDefault();
     console.log("In verifier 1")
@@ -515,6 +585,10 @@ async function verifierFirstAction(event) {
     return false;
 }
 
+
+/**
+ * Calls the verifier second action function with user provided parameters
+ */
 async function verifierSecondAction(event) {
     event.preventDefault();
     console.log("In verifier 2")
@@ -533,7 +607,8 @@ async function verifierSecondAction(event) {
     return false;
 }
 
-/* 
+
+/** 
  * Builds status modal to display transaction progress
  */
 async function buildStatusModal(stages) {
@@ -571,7 +646,10 @@ async function buildStatusModal(stages) {
     modal.show();
 }
 
-/* Displays the progress to the user */
+
+/** 
+ * Updated the current operation's status progress to the user 
+ */
 async function updateStatus(success, previous, current) {
     if (!current) {
         let assetType = success ? "Complete" : "Failed";
@@ -598,6 +676,11 @@ async function updateStatus(success, previous, current) {
     }
 }
 
+
+/** 
+ * Closes the specified modal
+ * @param  ident: HTML ID of the relevant modal 
+ */
 async function closeStatusModal(ident) {
     var myModalEl = document.getElementById(ident);
     var modal = bootstrap.Modal.getInstance(myModalEl);

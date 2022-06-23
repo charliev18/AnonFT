@@ -1,30 +1,47 @@
-import string
-import os
+
 import json
-from flask import Flask, request, render_template, send_from_directory
+from flask import Flask, request, render_template
 import subprocess
 from utils import *
 
 
+'''
+Initial Flask server setup
+'''
 app = Flask(__name__,
             static_url_path='', 
             static_folder='static',
             template_folder='templates')
 
 
+'''
+Endpoint for example verification page
+'''
 @app.route("/verifierAuth")
 def verifierAuth():
     return render_template('verifier.html')
 
+
+'''
+Endpoint for example prover authentication page
+'''
 @app.route("/proverAuth")
 def proverAuth():
     return render_template('prover.html')
 
+
+'''
+App home endpoint
+'''
 @app.route("/")
 def hello_world():
     return render_template('index.html')
 
 
+'''
+Endpoint to send setup parameters to, 
+Returns setup n,k,I,w values
+'''
 @app.route("/setup", methods=['POST'])
 def setup():
     print("RECEIVED SETUP REQUEST")
@@ -39,6 +56,10 @@ def setup():
     return parse_setup_out(output.returncode, output.stdout)
 
 
+''' 
+Endpoint to send prover first action parameters to, 
+Returns prover x,r values
+'''
 @app.route("/prove1", methods=['POST'])
 def prove1():
     print("RECEIVED PROVE STEP 1 REQUEST")
@@ -53,6 +74,10 @@ def prove1():
     return parse_prove_a_out(output.returncode, output.stdout)
 
 
+'''
+Endpoint to send prover second action parameters to,
+Returns prover y value
+'''
 @app.route("/prove2", methods=['POST'])
 def prove2():
     print("RECEIVED PROVE STEP 2 REQUEST")
@@ -69,6 +94,10 @@ def prove2():
     return parse_prove_b_out(output.returncode, output.stdout)
 
 
+'''
+Endpoint to send verifier first action parameters to,
+Returns verifier challenge, c value
+'''
 @app.route("/verify1", methods=['POST'])
 def verify1():
     print("RECEIVED VERIFY STEP 1 REQUEST")
@@ -81,6 +110,10 @@ def verify1():
     return parse_verif_a_out(output.returncode, output.stdout)
 
 
+'''
+Endpoint to send verifier second action parameters to,
+Returns true if proof valid, false otherwise
+'''
 @app.route("/verify2", methods=['POST'])
 def verify2():
     print("RECEIVED VERIFY STEP 2 REQUEST")
@@ -98,6 +131,9 @@ def verify2():
     return parse_verif_b_out(output.returncode, output.stdout)
     
 
+'''
+Endpoint to update tornado cache entries
+'''
 @app.route("/tornadoCache", methods=['POST'])
 def tornadoCache():
     print("RECEIVED CACHE UPDATE REQUEST")

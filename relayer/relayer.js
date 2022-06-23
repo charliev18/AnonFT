@@ -1,26 +1,34 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const { PRIVATE_KEY, goerliProxyAddr, ethProxyAddr, anonFTAddr, provider, gasLimit, etherscanApiKey, accountAddr } = require('./config');
+const { PRIVATE_KEY, goerliProxyAddr, ethProxyAddr, anonFTAddr, provider, gasLimit, accountAddr } = require('../config.js');
 const Web3 = require('web3');
 const tornadoProxyABI = require('./tornadoProxyABI.json');
 const anonFTjson = require('../build/contracts/AnonFTFactory.json');
 
 const app = express();
-const port = 3000;;
+const port = 3000;
 
 let web3, goerliContract, ethContract, anonFTContract, nonce;
 
+
+/**
+ * Sets up relevant contracts and web3 provider, using values from config
+ */
 function init() {
     web3 = new Web3(provider);
     goerliContract = new web3.eth.Contract(tornadoProxyABI, goerliProxyAddr);
     console.log("done init");
-    // ethContract = new web3.eth.Contract(tornadoProxyABI, ethProxyAddr);
+    ethContract = new web3.eth.Contract(tornadoProxyABI, ethProxyAddr);
     anonFTContract = new web3.eth.Contract(anonFTjson.abi, anonFTAddr);
-
-    // let calldata = anonFTContract.methods.mintDummy(209, 4, JSON.parse("[-16, 130, 188, 102]")).encodeABI();
-    // submitTransaction(anonFTAddr, calldata)
 }
 
+
+/**
+ * Helper function to manage submitting web3 transactions
+ * @param   destination: target contract address
+ * @param   calldata: transaction content
+ * @returns transaction receipt
+ */
 async function submitTransaction(destination, calldata) {
     let _nonce = await getNonce();
     nonce = nonce > _nonce ? nonce : _nonce;
@@ -50,10 +58,18 @@ async function submitTransaction(destination, calldata) {
     );
 }
 
+
+/**
+ * Returns the current account nonce for better nonce management
+ */
 async function getNonce() {
     return await web3.eth.getTransactionCount(accountAddr);
 }
 
+
+/**
+ * Sets up server to receive requests
+ */
 app.use(function (req, res, next) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST');
@@ -62,16 +78,17 @@ app.use(function (req, res, next) {
 });
 
 app.use(bodyParser.urlencoded({extended: false}))
-
 app.use(bodyParser.json())
 
-app.all('/', (req, res) => {
-    console.log("Hello");
-    res.send('Hello World!');
-    res.end();
-});
 
-// This is open to attacks if users only submit 'commit' without following up with mint
+/**
+ * Server endpoint for commit phase of anonymous transaction protocol
+ * expects request like:
+ * {
+ *  publicIds: {n:..., k:..., identifiers:...},
+ *  commitment: ...
+ * }
+ */
 app.post('/commit', (req, res) => {
     console.log("HANDLING COMMITMENT");
     console.log(req.body);
@@ -85,6 +102,16 @@ app.post('/commit', (req, res) => {
     });
 })
 
+
+/**
+ * Server endpoint for payment phase of anonymous transaction protocol
+ * expects request like:
+ * {
+ *  proof: ...,
+ *  contract: ...,
+ *  args: {Tornado Cash arguments}
+ * }
+ */
 app.post('/pay', (req, res) => {
     console.log("HANDLING PAYMENT");
     console.log(req.body);
@@ -100,6 +127,15 @@ app.post('/pay', (req, res) => {
     });
 })
 
+
+/**
+ * Server endpoint for confirmation phase of anonymous transaction protocol
+ * expects request like:
+ * {
+ *  commitment: ...,
+ *  tokenId: ...
+ * }
+ */
 app.post('/confirm', (req, res) => {
     console.log("HANDLING CONFIRMATION");
     console.log(req.body);
@@ -119,6 +155,16 @@ app.post('/confirm', (req, res) => {
     });
 })
 
+
+/**
+ * Server endpoint for proof initiation phase of anonymous transaction protocol
+ * expects request like:
+ * {
+ *  tokenId: ...,
+ *  address: ...,
+ *  commitment: ...
+ * }
+ */
 app.post('/initProof', (req, res) => {
     console.log("HANDLING PROOF COMMITMENT");
     console.log(req.body);
@@ -134,6 +180,15 @@ app.post('/initProof', (req, res) => {
     });
 })
 
+
+/**
+ * Server endpoint for proof commitent phase of anonymous transaction protocol
+ * expects request like:
+ * {
+ *  x: ...,
+ *  commitment: ...
+ * }
+ */
 app.post('/proveCommit', (req, res) => {
     console.log("HANDLING PROOF COMMITMENT");
     console.log(req.body);
@@ -148,6 +203,15 @@ app.post('/proveCommit', (req, res) => {
     });
 })
 
+
+/**
+ * Server endpoint for proof verification phase of anonymous transaction protocol
+ * expects request like:
+ * {
+ *  y: ...,
+ *  commitment: ...
+ * }
+ */
 app.post('/proveVerify', (req, res) => {
     console.log("HANDLING PROOF VERIFICATION");
     console.log(req.body);
